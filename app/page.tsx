@@ -6,24 +6,25 @@ export default function Home() {
   const [lineIndex, setLineIndex] = useState(0)
   const [deleting, setDeleting] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
+  const [scrolled, setScrolled] = useState(false)
 
   const lines = [
-    'We make founders look like they mean it.',
-    'Built for startups. Designed for legacy.',
+    'The branding partner for companies ready to lead.',
+    'We make founders impossible to ignore.',
     'Your brand is your first pitch.',
     'Identity that closes deals.',
-    'Where vision becomes visual.',
+    'Built for startups. Designed for legacy.',
   ]
 
   useEffect(() => {
     const current = lines[lineIndex]
     let timeout: ReturnType<typeof setTimeout>
     if (!deleting && text.length < current.length) {
-      timeout = setTimeout(() => setText(current.slice(0, text.length + 1)), 55)
+      timeout = setTimeout(() => setText(current.slice(0, text.length + 1)), 50)
     } else if (!deleting && text.length === current.length) {
-      timeout = setTimeout(() => setDeleting(true), 2200)
+      timeout = setTimeout(() => setDeleting(true), 2400)
     } else if (deleting && text.length > 0) {
-      timeout = setTimeout(() => setText(current.slice(0, text.length - 1)), 22)
+      timeout = setTimeout(() => setText(current.slice(0, text.length - 1)), 20)
     } else if (deleting && text.length === 0) {
       setDeleting(false)
       setLineIndex((prev) => (prev + 1) % lines.length)
@@ -31,43 +32,96 @@ export default function Home() {
     return () => clearTimeout(timeout)
   }, [text, deleting, lineIndex])
 
-  const services = [
-    { name: 'Brand Identity', desc: 'Full identity systems built to survive ten years of growth.' },
-    { name: 'Logo Design', desc: 'Wordmarks, lettermarks, icon marks. Every format you need.' },
-    { name: 'Cover Art & Visuals', desc: 'Music covers, social campaigns, event graphics.' },
-    { name: 'Business Branding', desc: 'End-to-end branding for businesses entering new markets.' },
-    { name: 'Brand Collateral', desc: 'Pitch decks, cards, letterheads. Every touchpoint, intentional.' },
-    { name: 'Brand Audit & Refresh', desc: "Diagnose what holds you back. Rebuild with precision." },
+  useEffect(() => {
+    const handleScroll = () => setScrolled(window.scrollY > 40)
+    window.addEventListener('scroll', handleScroll)
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => entries.forEach((e) => { if (e.isIntersecting) e.target.classList.add('visible') }),
+      { threshold: 0.1 }
+    )
+    document.querySelectorAll('.reveal').forEach((el) => observer.observe(el))
+    return () => observer.disconnect()
+  }, [])
+
+  useEffect(() => {
+    const dot = document.getElementById('cursorDot')
+    const ring = document.getElementById('cursorRing')
+    let mx = 0, my = 0, rx = 0, ry = 0
+    let rafId: number
+    const onMove = (e: MouseEvent) => {
+      mx = e.clientX; my = e.clientY
+      if (dot) { dot.style.left = mx + 'px'; dot.style.top = my + 'px' }
+    }
+    const animRing = () => {
+      rx += (mx - rx) * 0.12; ry += (my - ry) * 0.12
+      if (ring) { ring.style.left = rx + 'px'; ring.style.top = ry + 'px' }
+      rafId = requestAnimationFrame(animRing)
+    }
+    document.addEventListener('mousemove', onMove)
+    rafId = requestAnimationFrame(animRing)
+    const els = document.querySelectorAll('a, button')
+    const enter = () => { if (ring) { ring.style.width = '48px'; ring.style.height = '48px'; ring.style.borderColor = 'rgba(45,212,191,0.6)' } }
+    const leave = () => { if (ring) { ring.style.width = '32px'; ring.style.height = '32px'; ring.style.borderColor = 'rgba(45,212,191,0.4)' } }
+    els.forEach(el => { el.addEventListener('mouseenter', enter); el.addEventListener('mouseleave', leave) })
+    return () => {
+      document.removeEventListener('mousemove', onMove)
+      cancelAnimationFrame(rafId)
+      els.forEach(el => { el.removeEventListener('mouseenter', enter); el.removeEventListener('mouseleave', leave) })
+    }
+  }, [])
+
+  const stats = [
+    { num: '25+', label: 'Projects Delivered' },
+    { num: '6', label: 'Industries Served' },
+    { num: '3+', label: 'Countries' },
+    { num: '100%', label: 'Client Satisfaction' },
   ]
 
   const works = [
     {
       client: 'African Union',
-      tag: 'Graphic Design · Institutional',
-      desc: "Graphics and print collateral for one of Africa's foremost continental institutions.",
-      bg: '#0A0F0A',
-      accent: '#2DD4BF',
-      initials: 'AU',
-      badge: 'Flagship',
+      tag: 'Institutional · Graphic Design',
+      desc: "Graphics and print collateral for one of Africa's foremost continental institutions. Designed to communicate authority across multiple formats.",
+      bg: '#0A0F0A', accent: '#2DD4BF', initials: 'AU', badge: 'Flagship', industry: 'Government & NGO',
     },
     {
       client: 'AG Worldwide',
-      tag: 'Logo Design · Fintech',
-      desc: 'Visual identity for a foreign exchange company. A mark built to command trust.',
-      bg: '#0F0A00',
-      accent: '#C9A84C',
-      initials: 'AG',
-      badge: null,
+      tag: 'Fintech · Brand Identity',
+      desc: 'Logo and visual identity for a foreign exchange and financial services company. A mark built to command trust in a high-stakes industry.',
+      bg: '#0F0A00', accent: '#C9A84C', initials: 'AG', badge: null, industry: 'Financial Services',
     },
     {
       client: 'Heroes Dream Alive',
-      tag: 'Graphic Design · NGO',
-      desc: 'Campaign flyers and collateral for a non-profit driving social impact.',
-      bg: '#080A12',
-      accent: '#2DD4BF',
-      initials: 'HDA',
-      badge: null,
+      tag: 'NGO · Campaign Design',
+      desc: 'Campaign flyers and print collateral for a non-profit driving social impact. Design built to inspire action and community trust.',
+      bg: '#080A12', accent: '#2DD4BF', initials: 'HDA', badge: null, industry: 'Non-Profit',
     },
+  ]
+
+  const capabilities = [
+    { title: 'Brand Identity Systems', desc: 'Identity systems that help companies charge more. Logo, colour, typography, guidelines — built to survive ten years of growth.', outcome: 'Outcome: Instant recognition. Premium perception.' },
+    { title: 'Logo & Mark Design', desc: 'Marks that make people stop. Wordmarks, lettermarks, icon marks — crafted for memorability, not decoration.', outcome: 'Outcome: A mark that owns its category.' },
+    { title: 'Business Branding', desc: 'End-to-end brand strategy for businesses entering new markets. We make your company look like it belongs at the top.', outcome: 'Outcome: Market authority from day one.' },
+    { title: 'Cover Art & Visual Campaigns', desc: 'Music covers, event graphics, social campaigns. Visual storytelling that moves product, builds culture, and converts.', outcome: 'Outcome: Content people share without being asked.' },
+    { title: 'Brand Collateral', desc: 'Pitch decks, business cards, letterheads, packaging. Every touchpoint designed with the same strategic intention.', outcome: 'Outcome: Consistency that compounds credibility.' },
+    { title: 'Brand Audit & Refresh', desc: "For businesses that have outgrown their look. We diagnose what's holding you back and rebuild from a position of strength.", outcome: 'Outcome: A brand that reflects where you\'re going.' },
+  ]
+
+  const process = [
+    { num: '01', phase: 'Discovery', title: 'Interrogate the brief', text: "We don't accept the surface brief. We dig into your market, competitors, ambition, and the gap your brand needs to own.", accent: 'var(--teal)' },
+    { num: '02', phase: 'Strategy', title: 'Position before design', text: 'Brand position, voice, and visual direction locked before a single pixel is placed. No surprises at concept stage.', accent: 'var(--gold)' },
+    { num: '03', phase: 'Identity', title: 'Build the system', text: 'Concepts developed, refined through feedback, then systematised into a full identity your team can actually use.', accent: 'var(--teal)' },
+    { num: '04', phase: 'Delivery', title: 'Handed over, complete', text: 'Every file. Every format. A brand guidelines document your future designers will thank you for.', accent: 'var(--gold)' },
+  ]
+
+  const industries = [
+    'Financial Services', 'Government & NGO', 'Education & EdTech',
+    'Fashion & Lifestyle', 'Technology & SaaS', 'Real Estate',
+    'Healthcare', 'Entertainment & Music',
   ]
 
   return (
@@ -75,205 +129,113 @@ export default function Home() {
       <style>{`
         @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
         @keyframes pulseGlow {
-          0%,100% { box-shadow: 0 0 0 0 rgba(45,212,191,0.15); }
-          50% { box-shadow: 0 0 0 8px rgba(45,212,191,0); }
+          0%,100% { box-shadow:0 0 0 0 rgba(45,212,191,0.2); }
+          50% { box-shadow:0 0 0 10px rgba(45,212,191,0); }
         }
         @keyframes fadeSlideIn {
-          from { opacity:0; transform: translateX(-8px); }
-          to { opacity:1; transform: translateX(0); }
+          from { opacity:0; transform:translateX(-10px); }
+          to { opacity:1; transform:translateX(0); }
         }
         :root {
-          --void: #111318;
-          --card: #161A20;
-          --surface: #1C2028;
-          --divider: #2A2E38;
-          --white: #F0EDE6;
-          --muted: #7A7A8A;
-          --gold: #C9A84C;
-          --teal: #2DD4BF;
-          --teal-dim: rgba(45,212,191,0.06);
+          --void:#0E1014; --card:#13161C; --surface:#191D24;
+          --divider:#252930; --white:#F0EDE6; --muted:#6B6E7A;
+          --gold:#C9A84C; --teal:#2DD4BF;
+          --teal-dim:rgba(45,212,191,0.05); --gold-dim:rgba(201,168,76,0.05);
         }
-        *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
-        html { scroll-behavior: smooth; }
-        body { background: var(--void); color: var(--white); font-family: 'Inter', sans-serif; font-weight: 300; overflow-x: hidden; }
-        a { text-decoration: none; color: inherit; }
-        button { cursor: pointer; font-family: inherit; }
-
-        /* TUTORIVA SIDEBAR */
-        .tutoriva-sidebar {
-          position: fixed;
-          left: 0;
-          top: 50%;
-          transform: translateY(-50%);
-          z-index: 99;
-          animation: fadeSlideIn 0.8s ease 1s both;
+        *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+        html{scroll-behavior:smooth;}
+        body{background:var(--void);color:var(--white);font-family:'Inter',sans-serif;font-weight:300;overflow-x:hidden;cursor:none;}
+        a{text-decoration:none;color:inherit;}
+        button{cursor:none;font-family:inherit;}
+        .cursor-dot{position:fixed;width:8px;height:8px;background:var(--teal);border-radius:50%;pointer-events:none;z-index:9999;transform:translate(-50%,-50%);}
+        .cursor-ring{position:fixed;width:32px;height:32px;border:1px solid rgba(45,212,191,0.4);border-radius:50%;pointer-events:none;z-index:9998;transform:translate(-50%,-50%);transition:width 0.2s,height 0.2s,border-color 0.2s;}
+        .reveal{opacity:0;transform:translateY(20px);transition:opacity 0.7s ease,transform 0.7s ease;}
+        .reveal.visible{opacity:1;transform:translateY(0);}
+        .reveal-d1{transition-delay:0.1s;} .reveal-d2{transition-delay:0.2s;} .reveal-d3{transition-delay:0.3s;} .reveal-d4{transition-delay:0.4s;}
+        .tutoriva-sidebar{position:fixed;left:0;top:50%;transform:translateY(-50%);z-index:99;animation:fadeSlideIn 0.8s ease 1.2s both;}
+        .tutoriva-pill{display:flex;flex-direction:column;align-items:center;gap:0.5rem;background:rgba(19,22,28,0.95);border:1px solid rgba(45,212,191,0.3);border-left:none;padding:1.2rem 0.7rem;transition:all 0.3s ease;border-radius:0 8px 8px 0;animation:pulseGlow 4s ease-in-out infinite;backdrop-filter:blur(12px);}
+        .tutoriva-pill:hover{background:var(--teal);border-color:var(--teal);padding-right:1rem;}
+        .tutoriva-pill:hover .pill-text,.tutoriva-pill:hover .pill-sub,.tutoriva-pill:hover .pill-arrow{color:var(--void)!important;}
+        .tutoriva-pill:hover .pill-dot{background:var(--void);}
+        .pill-dot{width:5px;height:5px;background:var(--teal);border-radius:50%;flex-shrink:0;}
+        .pill-sub{font-size:0.5rem;letter-spacing:0.12em;text-transform:uppercase;color:rgba(45,212,191,0.6);writing-mode:vertical-rl;transform:rotate(180deg);}
+        .pill-text{font-family:'Playfair Display',serif;font-size:0.72rem;font-weight:700;color:var(--teal);writing-mode:vertical-rl;transform:rotate(180deg);letter-spacing:0.04em;}
+        .pill-arrow{font-size:0.65rem;color:var(--teal);transform:rotate(90deg);}
+        .nav-link{color:var(--muted);font-size:0.75rem;letter-spacing:0.12em;text-transform:uppercase;transition:color 0.2s;}
+        .nav-link:hover{color:var(--white);}
+        .mobile-menu{display:none;flex-direction:column;gap:0.4rem;background:none;border:none;padding:0.4rem;}
+        .mobile-menu span{display:block;width:22px;height:1.5px;background:var(--white);}
+        .stats-grid{display:grid;grid-template-columns:repeat(4,1fr);}
+        .stat-item{padding:3rem 2rem;border-right:1px solid var(--divider);text-align:center;}
+        .stat-item:last-child{border-right:none;}
+        .work-strip{display:flex;gap:1.5rem;overflow-x:auto;padding-bottom:1.5rem;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;}
+        .work-strip::-webkit-scrollbar{height:1px;}
+        .work-strip::-webkit-scrollbar-track{background:var(--divider);}
+        .work-strip::-webkit-scrollbar-thumb{background:var(--teal);}
+        .work-card{min-width:420px;height:540px;position:relative;overflow:hidden;scroll-snap-align:start;flex-shrink:0;border:1px solid var(--divider);transition:border-color 0.3s,transform 0.3s;}
+        .work-card:hover{border-color:rgba(45,212,191,0.25);transform:translateY(-4px);}
+        .work-card.featured{min-width:620px;}
+        .cap-grid{display:grid;grid-template-columns:1fr 1fr;border:1px solid var(--divider);}
+        .cap-item{padding:2.5rem;border-bottom:1px solid var(--divider);border-right:1px solid var(--divider);transition:background 0.25s;position:relative;overflow:hidden;}
+        .cap-item:nth-child(even){border-right:none;}
+        .cap-item:nth-last-child(-n+2){border-bottom:none;}
+        .cap-item:hover{background:var(--teal-dim);}
+        .cap-item::before{content:'';position:absolute;top:0;left:0;width:0;height:2px;background:var(--teal);transition:width 0.3s ease;}
+        .cap-item:hover::before{width:100%;}
+        .industry-grid{display:flex;flex-wrap:wrap;gap:0.75rem;margin-top:2rem;}
+        .industry-tag{border:1px solid var(--divider);padding:0.6rem 1.2rem;font-size:0.72rem;letter-spacing:0.08em;color:var(--muted);text-transform:uppercase;transition:all 0.2s;}
+        .industry-tag:hover{border-color:var(--teal);color:var(--teal);}
+        .process-grid{display:grid;grid-template-columns:repeat(4,1fr);}
+        .process-card{padding:2.5rem 2rem;border-left:1px solid var(--divider);}
+        .process-card:first-child{border-left:none;}
+        .why-grid{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--divider);margin-top:4rem;}
+        .why-item{background:var(--card);padding:2.5rem;transition:background 0.2s;}
+        .why-item:hover{background:var(--surface);}
+        .tl{width:2.5rem;height:2px;background:var(--teal);display:block;margin-bottom:1rem;}
+        .gl{width:2.5rem;height:2px;background:var(--gold);display:block;margin-bottom:1rem;}
+        .mobile-nav-drawer{display:none;position:fixed;top:64px;left:0;right:0;background:var(--card);border-bottom:1px solid var(--divider);flex-direction:column;z-index:98;padding:1.5rem;gap:1rem;}
+        .mobile-nav-drawer.open{display:flex;}
+        .mobile-nav-drawer a{color:var(--muted);font-size:0.85rem;letter-spacing:0.1em;text-transform:uppercase;padding:0.6rem 0;border-bottom:1px solid var(--divider);}
+        .mobile-nav-drawer a:last-child{border-bottom:none;color:var(--teal);}
+        .tutoriva-mobile-bar{display:none;align-items:center;justify-content:space-between;background:var(--teal-dim);border:1px solid rgba(45,212,191,0.2);padding:0.8rem 1.2rem;margin-bottom:2rem;border-radius:4px;}
+        @media(max-width:768px){
+          body{cursor:auto;}
+          .cursor-dot,.cursor-ring{display:none;}
+          .tutoriva-sidebar{display:none;}
+          .nav-links-desktop,.nav-cta-desktop{display:none!important;}
+          .mobile-menu{display:flex!important;}
+          .hero-pad{padding:6rem 1.5rem 4rem!important;}
+          .section-pad{padding:4rem 1.5rem!important;}
+          .cta-pad{padding:5rem 1.5rem!important;}
+          .stats-grid{grid-template-columns:1fr 1fr!important;}
+          .stat-item:nth-child(2){border-right:none;}
+          .stat-item:nth-child(3){border-right:1px solid var(--divider);}
+          .cap-grid{grid-template-columns:1fr!important;}
+          .cap-item{border-right:none!important;}
+          .cap-item:nth-last-child(-n+2){border-bottom:1px solid var(--divider)!important;}
+          .cap-item:last-child{border-bottom:none!important;}
+          .process-grid{grid-template-columns:1fr 1fr!important;}
+          .process-card{border-left:none!important;border-top:1px solid var(--divider);padding:2rem 1rem;}
+          .process-card:nth-child(odd){border-right:1px solid var(--divider);}
+          .why-grid{grid-template-columns:1fr!important;}
+          .work-card{min-width:300px!important;height:420px!important;}
+          .work-card.featured{min-width:320px!important;}
+          .footer-inner{flex-direction:column!important;gap:2rem!important;text-align:left;}
+          .tutoriva-mobile-bar{display:flex!important;}
+          .manifesto-grid{grid-template-columns:1fr!important;}
+          .nav-inner{padding:1.2rem 1.5rem!important;}
+          .footer-pad{padding:3rem 1.5rem!important;}
         }
-        .tutoriva-pill {
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          gap: 0.6rem;
-          background: var(--card);
-          border: 1px solid var(--teal);
-          border-left: none;
-          padding: 1.2rem 0.75rem;
-          cursor: pointer;
-          text-decoration: none;
-          transition: all 0.25s ease;
-          animation: pulseGlow 3s ease-in-out infinite;
-          border-radius: 0 8px 8px 0;
-        }
-        .tutoriva-pill:hover {
-          background: var(--teal);
-          padding-right: 1.1rem;
-        }
-        .tutoriva-pill:hover .pill-text,
-        .tutoriva-pill:hover .pill-label,
-        .tutoriva-pill:hover .pill-arrow { color: var(--void); }
-        .tutoriva-pill:hover .pill-dot { background: var(--void); }
-        .pill-dot {
-          width: 6px; height: 6px;
-          background: var(--teal);
-          border-radius: 50%;
-          flex-shrink: 0;
-        }
-        .pill-label {
-          font-size: 0.55rem;
-          letter-spacing: 0.15em;
-          text-transform: uppercase;
-          color: var(--teal);
-          writing-mode: vertical-rl;
-          transform: rotate(180deg);
-          opacity: 0.7;
-        }
-        .pill-text {
-          font-family: 'Playfair Display', serif;
-          font-size: 0.75rem;
-          font-weight: 700;
-          color: var(--teal);
-          writing-mode: vertical-rl;
-          transform: rotate(180deg);
-          letter-spacing: 0.05em;
-        }
-        .pill-arrow {
-          font-size: 0.7rem;
-          color: var(--teal);
-          transform: rotate(90deg);
-        }
-
-        /* NAV */
-        .nav-link { color: var(--muted); font-size: 0.8rem; letter-spacing: 0.12em; text-transform: uppercase; transition: color 0.2s; }
-        .nav-link:hover { color: var(--white); }
-        .mobile-menu {
-          display: none;
-          flex-direction: column;
-          gap: 0.4rem;
-          background: none;
-          border: none;
-          padding: 0.4rem;
-        }
-        .mobile-menu span {
-          display: block; width: 22px; height: 2px; background: var(--white); transition: all 0.2s;
-        }
-
-        /* WORK STRIP */
-        .work-strip {
-          display: flex; gap: 1.5rem; overflow-x: auto;
-          padding-bottom: 1rem; scroll-snap-type: x mandatory;
-          -webkit-overflow-scrolling: touch;
-        }
-        .work-strip::-webkit-scrollbar { height: 2px; }
-        .work-strip::-webkit-scrollbar-track { background: var(--divider); }
-        .work-strip::-webkit-scrollbar-thumb { background: var(--teal); }
-        .work-card {
-          min-width: 400px; height: 500px; position: relative;
-          overflow: hidden; scroll-snap-align: start; flex-shrink: 0;
-          border: 1px solid var(--divider); transition: border-color 0.2s;
-        }
-        .work-card:hover { border-color: rgba(45,212,191,0.3); }
-        .work-card.featured { min-width: 580px; }
-
-        /* SERVICES */
-        .service-row { display: grid; grid-template-columns: 1fr 1fr; border: 1px solid var(--divider); }
-        .service-item {
-          padding: 2rem; border-bottom: 1px solid var(--divider);
-          border-right: 1px solid var(--divider); transition: background 0.2s;
-        }
-        .service-item:nth-child(even) { border-right: none; }
-        .service-item:nth-last-child(-n+2) { border-bottom: none; }
-        .service-item:hover { background: var(--teal-dim); }
-
-        /* PROCESS */
-        .process-grid { display: grid; grid-template-columns: repeat(4,1fr); }
-        .process-card {
-          padding: 2.5rem 2rem;
-          border-left: 1px solid var(--divider);
-        }
-        .process-card:first-child { border-left: none; }
-
-        /* TEAL LINE */
-        .teal-line { width: 2.5rem; height: 3px; background: var(--teal); display: block; margin-bottom: 1.2rem; }
-
-        /* MOBILE */
-        @media (max-width: 768px) {
-          .tutoriva-sidebar { display: none; }
-          .tutoriva-mobile {
-            display: flex !important;
-            align-items: center;
-            justify-content: center;
-            gap: 0.5rem;
-            background: var(--teal-dim);
-            border: 1px solid var(--teal);
-            padding: 0.7rem 1.2rem;
-            margin: 0 1.5rem 2rem;
-            border-radius: 4px;
-            color: var(--teal);
-            font-size: 0.78rem;
-            letter-spacing: 0.08em;
-            text-transform: uppercase;
-            text-decoration: none;
-          }
-          .nav-links-desktop { display: none !important; }
-          .nav-cta-desktop { display: none !important; }
-          .mobile-menu { display: flex !important; }
-          .hero-section { padding: 6rem 1.5rem 3rem !important; }
-          .manifesto-grid { grid-template-columns: 1fr !important; gap: 2.5rem !important; }
-          .service-row { grid-template-columns: 1fr !important; }
-          .service-item { border-right: none !important; }
-          .service-item:nth-last-child(-n+2) { border-bottom: 1px solid var(--divider) !important; }
-          .service-item:last-child { border-bottom: none !important; }
-          .work-card { min-width: 300px !important; height: 400px !important; }
-          .work-card.featured { min-width: 320px !important; }
-          .process-grid { grid-template-columns: 1fr 1fr !important; }
-          .process-card { border-left: none !important; border-top: 1px solid var(--divider); }
-          .process-card:nth-child(odd) { border-right: 1px solid var(--divider); }
-          .section-pad { padding: 4rem 1.5rem !important; }
-          .footer-inner { flex-direction: column !important; gap: 1.2rem !important; text-align: center; }
-          .cta-section { padding: 5rem 1.5rem !important; }
-          .nav-inner { padding: 1.2rem 1.5rem !important; }
-        }
-
-        /* MOBILE NAV MENU */
-        .mobile-nav-drawer {
-          display: none;
-          position: fixed; top: 64px; left: 0; right: 0;
-          background: var(--card); border-bottom: 1px solid var(--divider);
-          flex-direction: column; z-index: 98; padding: 1.5rem;
-          gap: 1.2rem;
-        }
-        .mobile-nav-drawer.open { display: flex; }
-        .mobile-nav-drawer a {
-          color: var(--muted); font-size: 0.9rem; letter-spacing: 0.1em;
-          text-transform: uppercase; padding: 0.5rem 0;
-          border-bottom: 1px solid var(--divider);
-        }
-        .mobile-nav-drawer a:last-child { border-bottom: none; }
       `}</style>
 
-      {/* TUTORIVA SIDEBAR — desktop */}
+      {/* CUSTOM CURSOR */}
+      <div className="cursor-dot" id="cursorDot" />
+      <div className="cursor-ring" id="cursorRing" />
+
+      {/* TUTORIVA SIDEBAR */}
       <div className="tutoriva-sidebar">
         <a href="https://tutoriva.com" target="_blank" rel="noopener noreferrer" className="tutoriva-pill">
-          <span className="pill-label">A Brandinn Product</span>
+          <span className="pill-sub">A Brandinn Product</span>
           <div className="pill-dot" />
           <span className="pill-text">Tutoriva</span>
           <div className="pill-dot" />
@@ -282,209 +244,271 @@ export default function Home() {
       </div>
 
       {/* NAV */}
-      <nav style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 100, background: 'rgba(17,19,24,0.92)', backdropFilter: 'blur(16px)', borderBottom: '1px solid var(--divider)' }}>
-        <div className="nav-inner" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '1.4rem 4rem' }}>
-          <div style={{ fontFamily: "'Playfair Display', serif", fontSize: '1.2rem', fontWeight: 700, letterSpacing: '0.04em' }}>
-            Brandinn <span style={{ color: 'var(--teal)' }}>Atelier</span>
+      <nav style={{ position:'fixed', top:0, left:0, right:0, zIndex:100, background: scrolled ? 'rgba(14,16,20,0.96)' : 'transparent', backdropFilter: scrolled ? 'blur(20px)' : 'none', borderBottom: scrolled ? '1px solid var(--divider)' : '1px solid transparent', transition:'all 0.3s ease' }}>
+        <div className="nav-inner" style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'1.4rem 4rem' }}>
+          <div style={{ fontFamily:"'Playfair Display',serif", fontSize:'1.2rem', fontWeight:700, letterSpacing:'0.04em' }}>
+            Brandinn <span style={{ color:'var(--teal)' }}>Atelier</span>
           </div>
-          <ul className="nav-links-desktop" style={{ display: 'flex', gap: '2.5rem', listStyle: 'none' }}>
-            {['Work', 'Services', 'Process', 'Contact'].map((item) => (
+          <ul className="nav-links-desktop" style={{ display:'flex', gap:'2.5rem', listStyle:'none' }}>
+            {['Work','Services','Process','Contact'].map((item) => (
               <li key={item}><a href={`#${item.toLowerCase()}`} className="nav-link">{item}</a></li>
             ))}
           </ul>
           <button className="nav-cta-desktop"
-            onClick={() => document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' })}
-            style={{ background: 'none', border: '1px solid var(--teal)', color: 'var(--teal)', padding: '0.5rem 1.4rem', fontSize: '0.75rem', letterSpacing: '0.1em', textTransform: 'uppercase', transition: 'all 0.2s' }}
-            onMouseEnter={e => { e.currentTarget.style.background = 'var(--teal)'; e.currentTarget.style.color = 'var(--void)' }}
-            onMouseLeave={e => { e.currentTarget.style.background = 'none'; e.currentTarget.style.color = 'var(--teal)' }}
+            onClick={() => document.getElementById('contact')?.scrollIntoView({ behavior:'smooth' })}
+            style={{ background:'none', border:'1px solid var(--teal)', color:'var(--teal)', padding:'0.5rem 1.4rem', fontSize:'0.72rem', letterSpacing:'0.1em', textTransform:'uppercase', transition:'all 0.2s' }}
+            onMouseEnter={e => { e.currentTarget.style.background='var(--teal)'; e.currentTarget.style.color='var(--void)' }}
+            onMouseLeave={e => { e.currentTarget.style.background='none'; e.currentTarget.style.color='var(--teal)' }}
           >Start a Project</button>
-          <button className="mobile-menu" onClick={() => setMenuOpen(!menuOpen)} aria-label="Menu">
+          <button className="mobile-menu" onClick={() => setMenuOpen(!menuOpen)}>
             <span /><span /><span />
           </button>
         </div>
       </nav>
 
-      {/* MOBILE NAV DRAWER */}
       <div className={`mobile-nav-drawer${menuOpen ? ' open' : ''}`}>
-        {['Work', 'Services', 'Process', 'Contact'].map((item) => (
+        {['Work','Services','Process','Contact'].map((item) => (
           <a key={item} href={`#${item.toLowerCase()}`} onClick={() => setMenuOpen(false)}>{item}</a>
         ))}
-        <a href="https://tutoriva.com" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--teal) !important' }}>
-          Tutoriva After Class ↗
-        </a>
+        <a href="https://tutoriva.com" target="_blank" rel="noopener noreferrer">Tutoriva After Class ↗</a>
       </div>
 
       {/* HERO */}
-      <section className="hero-section" style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '0 4rem', position: 'relative', overflow: 'hidden' }}>
-        <div aria-hidden style={{ position: 'absolute', right: '-2rem', top: '50%', transform: 'translateY(-50%)', fontFamily: "'Playfair Display', serif", fontSize: 'clamp(8rem,18vw,16rem)', fontWeight: 900, color: 'rgba(45,212,191,0.025)', pointerEvents: 'none', lineHeight: 1 }}>BRAND</div>
+      <section className="hero-pad" style={{ minHeight:'100vh', display:'flex', flexDirection:'column', justifyContent:'center', padding:'0 4rem', position:'relative', overflow:'hidden' }}>
+        <div aria-hidden style={{ position:'absolute', right:'-4rem', top:'50%', transform:'translateY(-50%)', fontFamily:"'Playfair Display',serif", fontSize:'clamp(8rem,20vw,18rem)', fontWeight:900, color:'rgba(45,212,191,0.02)', pointerEvents:'none', lineHeight:1, userSelect:'none' }}>BRAND</div>
 
-        {/* Tutoriva mobile banner */}
-        <a href="https://tutoriva.com" target="_blank" rel="noopener noreferrer" className="tutoriva-mobile" style={{ display: 'none' }}>
-          <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--teal)', flexShrink: 0 }} />
-          Tutoriva After Class — A Brandinn Product ↗
-        </a>
+        <div className="tutoriva-mobile-bar">
+          <span style={{ fontSize:'0.72rem', color:'var(--teal)', letterSpacing:'0.08em', textTransform:'uppercase' }}>✦ Tutoriva After Class — A Brandinn Product</span>
+          <a href="https://tutoriva.com" target="_blank" rel="noopener noreferrer" style={{ fontSize:'0.72rem', color:'var(--teal)' }}>Visit ↗</a>
+        </div>
 
-        <div style={{ width: '3rem', height: '3px', background: 'var(--teal)', marginBottom: '2rem' }} />
-        <p style={{ fontSize: '0.7rem', letterSpacing: '0.25em', textTransform: 'uppercase', color: 'var(--teal)', marginBottom: '1.5rem' }}>Creative Studio — Lagos, Nigeria</p>
-        <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: 'clamp(3.5rem,8vw,7rem)', fontWeight: 900, lineHeight: 1.0, letterSpacing: '-0.02em', marginBottom: '1.5rem' }}>
-          Brandinn<br /><span style={{ color: 'var(--gold)' }}>Atelier.</span>
+        <div className="reveal">
+          <div style={{ width:'3rem', height:'2px', background:'var(--teal)', marginBottom:'2rem' }} />
+          <p style={{ fontSize:'0.68rem', letterSpacing:'0.28em', textTransform:'uppercase', color:'var(--teal)', marginBottom:'1.5rem' }}>Creative Studio — Lagos, Nigeria</p>
+        </div>
+        <h1 className="reveal reveal-d1" style={{ fontFamily:"'Playfair Display',serif", fontSize:'clamp(3.5rem,8vw,7rem)', fontWeight:900, lineHeight:1.0, letterSpacing:'-0.02em', marginBottom:'2rem' }}>
+          Brandinn<br /><span style={{ color:'var(--gold)' }}>Atelier.</span>
         </h1>
-        <p style={{ fontSize: '1rem', color: 'var(--muted)', maxWidth: '38ch', lineHeight: 1.8, marginBottom: '1.5rem', fontWeight: 300 }}>
-          We build the visual identity between a founder&apos;s vision and a market that believes it.
+        <p className="reveal reveal-d2" style={{ fontSize:'1.05rem', color:'var(--muted)', maxWidth:'44ch', lineHeight:1.85, marginBottom:'1.5rem', fontWeight:300 }}>
+          The branding partner for companies ready to lead their industry. We don&apos;t make things beautiful — we make businesses impossible to ignore.
         </p>
-        <p style={{ fontSize: '0.85rem', color: 'var(--white)', letterSpacing: '0.05em', marginBottom: '3rem', minHeight: '1.4em', fontStyle: 'italic', fontFamily: "'Playfair Display', serif" }}>
-          {text}<span style={{ display: 'inline-block', width: '2px', height: '1em', background: 'var(--teal)', marginLeft: '2px', verticalAlign: 'middle', animation: 'blink 1s step-end infinite' }} />
+        <p className="reveal reveal-d3" style={{ fontSize:'0.85rem', color:'var(--white)', marginBottom:'3rem', minHeight:'1.4em', fontStyle:'italic', fontFamily:"'Playfair Display',serif" }}>
+          {text}<span style={{ display:'inline-block', width:'2px', height:'1em', background:'var(--teal)', marginLeft:'2px', verticalAlign:'middle', animation:'blink 1s step-end infinite' }} />
         </p>
-        <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
-          <button onClick={() => document.getElementById('work')?.scrollIntoView({ behavior: 'smooth' })}
-            style={{ background: 'var(--teal)', color: 'var(--void)', border: 'none', padding: '0.9rem 2.2rem', fontSize: '0.8rem', fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+        <div className="reveal reveal-d4" style={{ display:'flex', gap:'1.5rem', alignItems:'center', flexWrap:'wrap' }}>
+          <button onClick={() => document.getElementById('work')?.scrollIntoView({ behavior:'smooth' })}
+            style={{ background:'var(--teal)', color:'var(--void)', border:'none', padding:'0.9rem 2.4rem', fontSize:'0.78rem', fontWeight:600, letterSpacing:'0.1em', textTransform:'uppercase' }}
+            onMouseEnter={e => e.currentTarget.style.opacity='0.85'}
+            onMouseLeave={e => e.currentTarget.style.opacity='1'}>
             View Our Work
           </button>
-          <button onClick={() => document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' })}
-            style={{ background: 'none', border: 'none', color: 'var(--muted)', fontSize: '0.8rem', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+          <button onClick={() => document.getElementById('contact')?.scrollIntoView({ behavior:'smooth' })}
+            style={{ background:'none', border:'none', color:'var(--muted)', fontSize:'0.78rem', letterSpacing:'0.1em', textTransform:'uppercase' }}
+            onMouseEnter={e => e.currentTarget.style.color='var(--white)'}
+            onMouseLeave={e => e.currentTarget.style.color='var(--muted)'}>
             → Start a Project
           </button>
         </div>
-        <div style={{ position: 'absolute', bottom: '3rem', right: '4rem', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.8rem' }}>
-          <span style={{ fontSize: '0.6rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--muted)', writingMode: 'vertical-rl' }}>Scroll</span>
-          <div style={{ width: '1px', height: '4rem', background: 'linear-gradient(to bottom, var(--teal), transparent)' }} />
+        <div style={{ position:'absolute', bottom:'3rem', right:'4rem', display:'flex', flexDirection:'column', alignItems:'center', gap:'0.8rem' }}>
+          <span style={{ fontSize:'0.58rem', letterSpacing:'0.22em', textTransform:'uppercase', color:'var(--muted)', writingMode:'vertical-rl' }}>Scroll</span>
+          <div style={{ width:'1px', height:'4rem', background:'linear-gradient(to bottom,var(--teal),transparent)' }} />
         </div>
       </section>
 
-      {/* MANIFESTO */}
-      <section id="about" className="section-pad" style={{ padding: '7rem 4rem', background: 'var(--card)', borderTop: '1px solid var(--divider)', borderBottom: '1px solid var(--divider)' }}>
-        <div className="manifesto-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '4rem', alignItems: 'start' }}>
-          <div>
-            <span className="teal-line" />
-            <p style={{ fontSize: '0.7rem', letterSpacing: '0.25em', textTransform: 'uppercase', color: 'var(--teal)', marginBottom: '1.5rem' }}>Our philosophy</p>
-            <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 'clamp(2.2rem,4vw,3.5rem)', fontWeight: 700, lineHeight: 1.1, marginBottom: '1rem' }}>
-              Identity is<br /><em>the product.</em>
-            </h2>
-            <p style={{ fontSize: '0.85rem', color: 'var(--muted)', lineHeight: 1.85 }}>
-              We don&apos;t design logos. We architect the first impression that decides whether a founder is taken seriously — or not.
-            </p>
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '2.5rem' }}>
-            {[
-              { num: '01', title: 'Strategic before aesthetic', text: "Brand decisions made without business context are decoration. We interrogate the market, the audience, and the founder's ambition before a single concept is sketched." },
-              { num: '02', title: 'Built to scale', text: 'Startups grow. Your identity must work on a pitch deck in Abuja and a billboard in London. We design systems, not just assets.' },
-              { num: '03', title: 'Distinctive or irrelevant', text: 'The market is crowded. We hunt for the one visual truth that makes your brand unmistakable — and build everything around it.' },
-            ].map((p) => (
-              <div key={p.num} style={{ borderLeft: '2px solid var(--teal)', paddingLeft: '1.5rem' }}>
-                <p style={{ fontSize: '0.65rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--teal)', marginBottom: '0.4rem' }}>{p.num}</p>
-                <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: '1.15rem', fontWeight: 700, marginBottom: '0.4rem' }}>{p.title}</h3>
-                <p style={{ fontSize: '0.85rem', color: 'var(--muted)', lineHeight: 1.7 }}>{p.text}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* SERVICES */}
-      <section id="services" className="section-pad" style={{ padding: '7rem 4rem' }}>
-        <span className="teal-line" />
-        <p style={{ fontSize: '0.7rem', letterSpacing: '0.25em', textTransform: 'uppercase', color: 'var(--teal)', marginBottom: '1rem' }}>What we do</p>
-        <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 'clamp(2.2rem,4vw,3.5rem)', fontWeight: 700, lineHeight: 1.1, marginBottom: '4rem' }}>Services</h2>
-        <div className="service-row">
-          {services.map((s, i) => (
-            <div key={i} className="service-item">
-              <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: '1.05rem', fontWeight: 700, marginBottom: '0.6rem' }}>{s.name}</h3>
-              <p style={{ fontSize: '0.82rem', color: 'var(--muted)', lineHeight: 1.75 }}>{s.desc}</p>
+      {/* STATS */}
+      <div style={{ background:'var(--card)', borderTop:'1px solid var(--divider)', borderBottom:'1px solid var(--divider)' }}>
+        <div className="stats-grid">
+          {stats.map((s, i) => (
+            <div key={i} className="stat-item reveal">
+              <p style={{ fontFamily:"'Playfair Display',serif", fontSize:'clamp(2.2rem,4vw,3rem)', fontWeight:900, color: i % 2 === 0 ? 'var(--teal)' : 'var(--gold)', lineHeight:1, marginBottom:'0.5rem' }}>{s.num}</p>
+              <p style={{ fontSize:'0.7rem', letterSpacing:'0.12em', textTransform:'uppercase', color:'var(--muted)' }}>{s.label}</p>
             </div>
           ))}
         </div>
-      </section>
+      </div>
 
       {/* WORK */}
-      <section id="work" className="section-pad" style={{ padding: '7rem 4rem', background: 'var(--card)', borderTop: '1px solid var(--divider)' }}>
-        <span className="teal-line" />
-        <p style={{ fontSize: '0.7rem', letterSpacing: '0.25em', textTransform: 'uppercase', color: 'var(--teal)', marginBottom: '1rem' }}>Selected work</p>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '3rem', flexWrap: 'wrap', gap: '1rem' }}>
-          <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 'clamp(2.2rem,4vw,3.5rem)', fontWeight: 700, lineHeight: 1.1 }}>Our Portfolio</h2>
-          <p style={{ fontSize: '0.78rem', color: 'var(--muted)' }}>Scroll to explore →</p>
+      <section id="work" className="section-pad" style={{ padding:'7rem 4rem' }}>
+        <span className="tl reveal" />
+        <div className="reveal" style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-end', marginBottom:'3rem', flexWrap:'wrap', gap:'1rem' }}>
+          <div>
+            <p style={{ fontSize:'0.68rem', letterSpacing:'0.25em', textTransform:'uppercase', color:'var(--teal)', marginBottom:'0.8rem' }}>Selected Work</p>
+            <h2 style={{ fontFamily:"'Playfair Display',serif", fontSize:'clamp(2.2rem,4vw,3.5rem)', fontWeight:700, lineHeight:1.05 }}>Work that moves<br /><em>markets.</em></h2>
+          </div>
+          <p style={{ fontSize:'0.78rem', color:'var(--muted)', maxWidth:'32ch', lineHeight:1.7 }}>Every project starts with a business problem. Design is how we solve it.</p>
         </div>
-        <div className="work-strip">
+        <div className="work-strip reveal">
           {works.map((w, i) => (
-            <div key={i} className={`work-card${i === 0 ? ' featured' : ''}`} style={{ background: w.bg }}>
-              <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <span style={{ fontFamily: "'Playfair Display', serif", fontSize: i === 0 ? '8rem' : '6rem', fontWeight: 900, color: `${w.accent}10`, letterSpacing: '-0.02em' }}>{w.initials}</span>
+            <div key={i} className={`work-card${i === 0 ? ' featured' : ''}`} style={{ background:w.bg }}>
+              <div style={{ position:'absolute', inset:0, display:'flex', alignItems:'center', justifyContent:'center' }}>
+                <span style={{ fontFamily:"'Playfair Display',serif", fontSize: i===0 ? '9rem':'7rem', fontWeight:900, color:`${w.accent}08`, letterSpacing:'-0.02em' }}>{w.initials}</span>
               </div>
-              <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '3px', background: w.accent }} />
-              {w.badge && (
-                <div style={{ position: 'absolute', top: '1.5rem', left: '1.5rem', fontSize: '0.6rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: w.accent, border: `1px solid ${w.accent}50`, padding: '0.25rem 0.7rem' }}>{w.badge}</div>
-              )}
-              <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(10,10,10,0.97) 0%, rgba(10,10,10,0.15) 60%)' }} />
-              <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '2rem' }}>
-                <span style={{ fontSize: '0.65rem', letterSpacing: '0.18em', textTransform: 'uppercase', color: w.accent, marginBottom: '0.6rem', display: 'block' }}>{w.tag}</span>
-                <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: i === 0 ? '1.8rem' : '1.3rem', fontWeight: 700, marginBottom: '0.5rem' }}>{w.client}</h3>
-                <p style={{ fontSize: '0.8rem', color: 'var(--muted)', lineHeight: 1.65 }}>{w.desc}</p>
+              <div style={{ position:'absolute', top:0, left:0, right:0, height:'2px', background:w.accent }} />
+              {w.badge && <div style={{ position:'absolute', top:'1.5rem', left:'1.5rem', fontSize:'0.58rem', letterSpacing:'0.2em', textTransform:'uppercase', color:w.accent, border:`1px solid ${w.accent}40`, padding:'0.25rem 0.7rem' }}>{w.badge}</div>}
+              <div style={{ position:'absolute', top:'1.5rem', right:'1.5rem', fontSize:'0.58rem', letterSpacing:'0.15em', textTransform:'uppercase', color:'var(--muted)', border:'1px solid var(--divider)', padding:'0.25rem 0.7rem' }}>{w.industry}</div>
+              <div style={{ position:'absolute', inset:0, background:'linear-gradient(to top,rgba(10,10,10,0.97) 0%,rgba(10,10,10,0.1) 55%)' }} />
+              <div style={{ position:'absolute', bottom:0, left:0, right:0, padding:'2rem' }}>
+                <span style={{ fontSize:'0.62rem', letterSpacing:'0.18em', textTransform:'uppercase', color:w.accent, marginBottom:'0.6rem', display:'block' }}>{w.tag}</span>
+                <h3 style={{ fontFamily:"'Playfair Display',serif", fontSize: i===0 ? '1.9rem':'1.4rem', fontWeight:700, marginBottom:'0.5rem' }}>{w.client}</h3>
+                <p style={{ fontSize:'0.78rem', color:'var(--muted)', lineHeight:1.65, maxWidth:'42ch' }}>{w.desc}</p>
               </div>
             </div>
           ))}
+        </div>
+      </section>
+
+      {/* CAPABILITIES */}
+      <section id="services" className="section-pad" style={{ padding:'7rem 4rem', background:'var(--card)', borderTop:'1px solid var(--divider)' }}>
+        <span className="tl reveal" />
+        <div className="reveal" style={{ display:'grid', gridTemplateColumns:'1fr 2fr', gap:'4rem', alignItems:'start', marginBottom:'4rem' }}>
+          <div>
+            <p style={{ fontSize:'0.68rem', letterSpacing:'0.25em', textTransform:'uppercase', color:'var(--teal)', marginBottom:'0.8rem' }}>What We Do</p>
+            <h2 style={{ fontFamily:"'Playfair Display',serif", fontSize:'clamp(2.2rem,4vw,3.5rem)', fontWeight:700, lineHeight:1.05 }}>Capabilities</h2>
+          </div>
+          <p style={{ fontSize:'0.9rem', color:'var(--muted)', lineHeight:1.85, maxWidth:'52ch', alignSelf:'flex-end' }}>
+            We don&apos;t sell design. We sell transformation. Every service exists to move your business forward — not just look good doing it.
+          </p>
+        </div>
+        <div className="cap-grid reveal">
+          {capabilities.map((c, i) => (
+            <div key={i} className="cap-item">
+              <p style={{ fontSize:'0.6rem', letterSpacing:'0.2em', textTransform:'uppercase', color:'var(--teal)', marginBottom:'1rem' }}>0{i+1}</p>
+              <h3 style={{ fontFamily:"'Playfair Display',serif", fontSize:'1.1rem', fontWeight:700, marginBottom:'0.75rem' }}>{c.title}</h3>
+              <p style={{ fontSize:'0.82rem', color:'var(--muted)', lineHeight:1.75, marginBottom:'1rem' }}>{c.desc}</p>
+              <p style={{ fontSize:'0.72rem', color:'var(--teal)', letterSpacing:'0.04em', fontStyle:'italic' }}>{c.outcome}</p>
+            </div>
+          ))}
+        </div>
+        <div style={{ marginTop:'5rem' }} className="reveal">
+          <span className="gl" />
+          <p style={{ fontSize:'0.68rem', letterSpacing:'0.25em', textTransform:'uppercase', color:'var(--gold)', marginBottom:'1rem' }}>Industries We Serve</p>
+          <div className="industry-grid">
+            {industries.map((ind, i) => <span key={i} className="industry-tag">{ind}</span>)}
+          </div>
         </div>
       </section>
 
       {/* PROCESS */}
-      <section id="process" className="section-pad" style={{ padding: '7rem 4rem' }}>
-        <span className="teal-line" />
-        <p style={{ fontSize: '0.7rem', letterSpacing: '0.25em', textTransform: 'uppercase', color: 'var(--teal)', marginBottom: '1rem' }}>How we work</p>
-        <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 'clamp(2.2rem,4vw,3.5rem)', fontWeight: 700, lineHeight: 1.1, marginBottom: '4rem' }}>The Process</h2>
-        <div className="process-grid">
+      <section id="process" className="section-pad" style={{ padding:'7rem 4rem' }}>
+        <span className="tl reveal" />
+        <div className="reveal" style={{ marginBottom:'4rem' }}>
+          <p style={{ fontSize:'0.68rem', letterSpacing:'0.25em', textTransform:'uppercase', color:'var(--teal)', marginBottom:'0.8rem' }}>How We Work</p>
+          <h2 style={{ fontFamily:"'Playfair Display',serif", fontSize:'clamp(2.2rem,4vw,3.5rem)', fontWeight:700, lineHeight:1.05 }}>
+            Position before<br /><em style={{ color:'var(--gold)' }}>design. Always.</em>
+          </h2>
+        </div>
+        <div className="process-grid reveal">
+          {process.map((s, i) => (
+            <div key={i} className="process-card" style={{ borderTop:`2px solid ${s.accent}` }}>
+              <p style={{ fontSize:'0.62rem', letterSpacing:'0.2em', color:s.accent, textTransform:'uppercase', paddingTop:'1.5rem', marginBottom:'0.4rem' }}>{s.num} — {s.phase}</p>
+              <h3 style={{ fontFamily:"'Playfair Display',serif", fontSize:'1rem', fontWeight:700, marginBottom:'0.8rem', marginTop:'0.3rem' }}>{s.title}</h3>
+              <p style={{ fontSize:'0.8rem', color:'var(--muted)', lineHeight:1.75 }}>{s.text}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* WHY BRANDINN */}
+      <section className="section-pad" style={{ padding:'7rem 4rem', background:'var(--card)', borderTop:'1px solid var(--divider)' }}>
+        <span className="gl reveal" />
+        <div className="reveal">
+          <p style={{ fontSize:'0.68rem', letterSpacing:'0.25em', textTransform:'uppercase', color:'var(--gold)', marginBottom:'0.8rem' }}>Why Brandinn Atelier</p>
+          <h2 style={{ fontFamily:"'Playfair Display',serif", fontSize:'clamp(2.2rem,4vw,3.5rem)', fontWeight:700, lineHeight:1.05 }}>
+            We think like<br /><em>consultants.</em>
+          </h2>
+        </div>
+        <div className="why-grid reveal">
           {[
-            { num: '01', phase: 'Discovery', title: 'Interrogate the brief', text: "We dig into your market, competitors, and the gap your brand needs to own.", accent: 'var(--teal)' },
-            { num: '02', phase: 'Strategy', title: 'Position before design', text: 'Brand position and visual direction agreed before a single pixel is placed.', accent: 'var(--gold)' },
-            { num: '03', phase: 'Identity', title: 'Build the system', text: 'Concepts developed, refined, then systematised into a full identity.', accent: 'var(--teal)' },
-            { num: '04', phase: 'Delivery', title: 'Handed over, complete', text: 'Every file. Every format. Brand guidelines your designers will thank you for.', accent: 'var(--gold)' },
-          ].map((s, i) => (
-            <div key={i} className="process-card" style={{ borderTop: `3px solid ${s.accent}` }}>
-              <p style={{ fontSize: '0.65rem', letterSpacing: '0.2em', color: s.accent, marginBottom: '0.3rem', textTransform: 'uppercase', paddingTop: '1.5rem' }}>{s.num} — {s.phase}</p>
-              <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: '1rem', fontWeight: 700, marginBottom: '0.8rem', marginTop: '0.5rem' }}>{s.title}</h3>
-              <p style={{ fontSize: '0.8rem', color: 'var(--muted)', lineHeight: 1.7 }}>{s.text}</p>
+            { title:'Strategy first.', text:'Every brand decision is anchored in your market position, your audience, and your competitive landscape. Design without strategy is decoration.' },
+            { title:'Built to scale.', text:'We design systems, not just assets. Your identity will work on a business card in Lagos and a billboard in London.' },
+            { title:'We own the outcomes.', text:"We don't deliver files and disappear. We stay until your brand is working — measured by your results, not our aesthetics." },
+            { title:'Distinctive or nothing.', text:'The goal is never to look good. The goal is to be unmistakable. We hunt for the one truth that makes your brand impossible to replicate.' },
+          ].map((w, i) => (
+            <div key={i} className="why-item">
+              <h3 style={{ fontFamily:"'Playfair Display',serif", fontSize:'1.15rem', fontWeight:700, marginBottom:'0.8rem', color:'var(--gold)' }}>{w.title}</h3>
+              <p style={{ fontSize:'0.85rem', color:'var(--muted)', lineHeight:1.8 }}>{w.text}</p>
             </div>
           ))}
         </div>
       </section>
 
       {/* CTA */}
-      <section id="contact" className="cta-section" style={{ textAlign: 'center', padding: '9rem 4rem', position: 'relative', overflow: 'hidden', background: 'var(--card)', borderTop: '1px solid var(--divider)' }}>
-        <div aria-hidden style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none' }}>
-          <span style={{ fontFamily: "'Playfair Display', serif", fontSize: 'clamp(6rem,16vw,14rem)', fontWeight: 900, color: 'rgba(45,212,191,0.03)', letterSpacing: '-0.04em' }}>START</span>
+      <section id="contact" className="cta-pad" style={{ textAlign:'center', padding:'9rem 4rem', position:'relative', overflow:'hidden', borderTop:'1px solid var(--divider)' }}>
+        <div aria-hidden style={{ position:'absolute', inset:0, display:'flex', alignItems:'center', justifyContent:'center', pointerEvents:'none' }}>
+          <span style={{ fontFamily:"'Playfair Display',serif", fontSize:'clamp(5rem,14vw,13rem)', fontWeight:900, color:'rgba(45,212,191,0.025)', letterSpacing:'-0.04em' }}>START</span>
         </div>
-        <div style={{ width: '3rem', height: '3px', background: 'var(--teal)', margin: '0 auto 2rem' }} />
-        <span style={{ fontSize: '0.7rem', letterSpacing: '0.25em', textTransform: 'uppercase', color: 'var(--teal)', marginBottom: '1.5rem', display: 'block' }}>Ready to build?</span>
-        <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 'clamp(2.5rem,5vw,4.5rem)', fontWeight: 900, lineHeight: 1.05, marginBottom: '1.5rem' }}>
-          Your brand deserves<br />to be <em style={{ color: 'var(--gold)' }}>unmistakable.</em>
-        </h2>
-        <p style={{ fontSize: '0.9rem', color: 'var(--muted)', marginBottom: '3rem', maxWidth: '42ch', marginLeft: 'auto', marginRight: 'auto', lineHeight: 1.8 }}>
-          We work with a small number of founders at a time. If you&apos;re serious about your brand, let&apos;s talk.
-        </p>
-        <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
-          <button style={{ background: 'var(--teal)', color: 'var(--void)', border: 'none', padding: '0.9rem 2.2rem', fontSize: '0.8rem', fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase' }}>
-            Start a Project
-          </button>
-          <button style={{ background: 'none', border: '1px solid var(--divider)', color: 'var(--muted)', padding: '0.9rem 1.8rem', fontSize: '0.8rem', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
-            See Pricing
-          </button>
+        <div style={{ width:'3rem', height:'2px', background:'var(--teal)', margin:'0 auto 2rem' }} className="reveal" />
+        <div className="reveal">
+          <span style={{ fontSize:'0.68rem', letterSpacing:'0.28em', textTransform:'uppercase', color:'var(--teal)', marginBottom:'1.5rem', display:'block' }}>Ready to build?</span>
+          <h2 style={{ fontFamily:"'Playfair Display',serif", fontSize:'clamp(2.5rem,5vw,4.5rem)', fontWeight:900, lineHeight:1.05, marginBottom:'1.5rem' }}>
+            Your brand should make<br />competitors <em style={{ color:'var(--gold)' }}>uncomfortable.</em>
+          </h2>
+          <p style={{ fontSize:'0.9rem', color:'var(--muted)', marginBottom:'3rem', maxWidth:'44ch', marginLeft:'auto', marginRight:'auto', lineHeight:1.85 }}>
+            We work with a small number of founders at a time. We choose clients who are serious about their market position. If that&apos;s you — let&apos;s talk.
+          </p>
+          <div style={{ display:'flex', gap:'1rem', justifyContent:'center', flexWrap:'wrap' }}>
+            <button style={{ background:'var(--teal)', color:'var(--void)', border:'none', padding:'1rem 2.4rem', fontSize:'0.78rem', fontWeight:600, letterSpacing:'0.1em', textTransform:'uppercase' }}>
+              Start a Project
+            </button>
+            <button style={{ background:'none', border:'1px solid var(--divider)', color:'var(--muted)', padding:'1rem 2rem', fontSize:'0.78rem', letterSpacing:'0.1em', textTransform:'uppercase' }}>
+              See Our Services
+            </button>
+          </div>
+          <span style={{ fontSize:'0.82rem', color:'var(--muted)', marginTop:'2.5rem', display:'block' }}>
+            Or write directly — <a href="mailto:hello@brandinn.com" style={{ color:'var(--teal)' }}>hello@brandinn.com</a>
+          </span>
         </div>
-        <span style={{ fontSize: '0.85rem', color: 'var(--muted)', marginTop: '2rem', display: 'block' }}>
-          Or write us at <a href="mailto:hello@brandinn.com" style={{ color: 'var(--teal)' }}>hello@brandinn.com</a>
-        </span>
       </section>
 
       {/* FOOTER */}
-      <footer style={{ borderTop: '1px solid var(--divider)', padding: '2.5rem 4rem', background: 'var(--void)' }}>
-        <div className="footer-inner" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <div style={{ fontFamily: "'Playfair Display', serif", fontSize: '1rem', fontWeight: 700, letterSpacing: '0.04em' }}>
-            Brandinn <span style={{ color: 'var(--teal)' }}>Atelier</span>
+      <footer className="footer-pad" style={{ borderTop:'1px solid var(--divider)', padding:'4rem', background:'var(--card)' }}>
+        <div className="footer-inner" style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', gap:'3rem', marginBottom:'3rem' }}>
+          <div style={{ maxWidth:'24ch' }}>
+            <div style={{ fontFamily:"'Playfair Display',serif", fontSize:'1.1rem', fontWeight:700, letterSpacing:'0.04em', marginBottom:'0.8rem' }}>
+              Brandinn <span style={{ color:'var(--teal)' }}>Atelier</span>
+            </div>
+            <p style={{ fontSize:'0.78rem', color:'var(--muted)', lineHeight:1.75 }}>The branding partner for companies ready to lead their industry.</p>
+            <div style={{ marginTop:'1.5rem', padding:'0.8rem 1rem', background:'var(--teal-dim)', border:'1px solid rgba(45,212,191,0.15)', borderRadius:'4px' }}>
+              <p style={{ fontSize:'0.6rem', letterSpacing:'0.12em', textTransform:'uppercase', color:'rgba(45,212,191,0.6)', marginBottom:'0.3rem' }}>A Brandinn Product</p>
+              <a href="https://tutoriva.com" target="_blank" rel="noopener noreferrer" style={{ fontFamily:"'Playfair Display',serif", fontSize:'0.88rem', fontWeight:700, color:'var(--teal)' }}>
+                Tutoriva After Class ↗
+              </a>
+              <p style={{ fontSize:'0.7rem', color:'var(--muted)', marginTop:'0.2rem' }}>K-12 online tutoring platform</p>
+            </div>
           </div>
-          <p style={{ fontSize: '0.72rem', color: 'var(--muted)', letterSpacing: '0.05em' }}>© 2025 Brandinn Atelier. All rights reserved.</p>
-          <ul style={{ display: 'flex', gap: '2rem', listStyle: 'none' }}>
-            {['Work', 'Services', 'Contact'].map((item) => (
-              <li key={item}>
-                <a href={`#${item.toLowerCase()}`} style={{ fontSize: '0.72rem', color: 'var(--muted)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>{item}</a>
-              </li>
-            ))}
-          </ul>
+          <div>
+            <p style={{ fontSize:'0.62rem', letterSpacing:'0.18em', textTransform:'uppercase', color:'var(--muted)', marginBottom:'1.2rem' }}>Navigate</p>
+            <ul style={{ listStyle:'none', display:'flex', flexDirection:'column', gap:'0.7rem' }}>
+              {['Work','Services','Process','Contact'].map((item) => (
+                <li key={item}><a href={`#${item.toLowerCase()}`} style={{ fontSize:'0.8rem', color:'var(--muted)', letterSpacing:'0.06em', transition:'color 0.2s' }}
+                  onMouseEnter={e => e.currentTarget.style.color='var(--white)'}
+                  onMouseLeave={e => e.currentTarget.style.color='var(--muted)'}>{item}</a></li>
+              ))}
+            </ul>
+          </div>
+          <div>
+            <p style={{ fontSize:'0.62rem', letterSpacing:'0.18em', textTransform:'uppercase', color:'var(--muted)', marginBottom:'1.2rem' }}>Connect</p>
+            <ul style={{ listStyle:'none', display:'flex', flexDirection:'column', gap:'0.7rem' }}>
+              {[
+                { label:'LinkedIn', href:'#' },
+                { label:'Instagram', href:'#' },
+                { label:'Behance', href:'#' },
+                { label:'Email Us', href:'mailto:hello@brandinn.com' },
+              ].map((link) => (
+                <li key={link.label}><a href={link.href} style={{ fontSize:'0.8rem', color:'var(--muted)', letterSpacing:'0.06em', transition:'color 0.2s' }}
+                  onMouseEnter={e => e.currentTarget.style.color='var(--white)'}
+                  onMouseLeave={e => e.currentTarget.style.color='var(--muted)'}>{link.label} ↗</a></li>
+              ))}
+            </ul>
+          </div>
+          <div>
+            <p style={{ fontSize:'0.62rem', letterSpacing:'0.18em', textTransform:'uppercase', color:'var(--muted)', marginBottom:'1.2rem' }}>Studio</p>
+            <p style={{ fontSize:'0.8rem', color:'var(--muted)', lineHeight:1.8 }}>Lagos, Nigeria<br />Available Worldwide</p>
+          </div>
+        </div>
+        <div style={{ borderTop:'1px solid var(--divider)', paddingTop:'2rem', display:'flex', justifyContent:'space-between', alignItems:'center', flexWrap:'wrap', gap:'1rem' }}>
+          <p style={{ fontSize:'0.68rem', color:'var(--muted)', letterSpacing:'0.06em' }}>© 2026 Brandinn Atelier. All rights reserved.</p>
+          <p style={{ fontSize:'0.68rem', color:'var(--muted)', letterSpacing:'0.06em', fontStyle:'italic' }}>Identity is the product.</p>
         </div>
       </footer>
 
